@@ -17,7 +17,7 @@ resource "aws_instance" "backend" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
-  user_data              = templatefile("scripts/backend_user_data.sh", { timestamp = timestamp() })
+  user_data              = templatefile("scripts/backend_user_data.sh", { timestamp = timestamp(), datadog_api_key = var.datadog_api_key })
   vpc_security_group_ids = [aws_security_group.backend_sg.id]
   tags = {
     Name = "lti-project-backend"
@@ -29,7 +29,7 @@ resource "aws_instance" "frontend" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.medium"
   iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
-  user_data              = templatefile("scripts/frontend_user_data.sh", { timestamp = timestamp() })
+  user_data              = templatefile("scripts/frontend_user_data.sh", { timestamp = timestamp(), datadog_api_key = var.datadog_api_key })
   vpc_security_group_ids = [aws_security_group.frontend_sg.id]
   tags = {
     Name = "lti-project-frontend"

@@ -54,3 +54,21 @@ Entregable: fichero tf/datadog.tf completo con los tres bloques.
 ```
 
 ---
+
+## Prompt 3 — Instalar el agente Datadog en las instancias EC2
+
+```
+Modifica tf/scripts/backend_user_data.sh y frontend_user_data.sh para instalar
+el agente Datadog v7 antes de arrancar Docker.
+
+Requisitos:
+- DD_SITE="datadoghq.eu"
+- DD_AGENT_MAJOR_VERSION=7 (explícito aunque el script ya lo fija)
+- DD_API_KEY inyectada via templatefile() en tf/ec2.tf, no hardcodeada en el script
+- Script one-line oficial de Datadog: https://install.datadoghq.com/scripts/install_script_agent7.sh
+- Arrancar el agente como servicio con: systemctl start datadog-agent
+- Referencia: https://app.datadoghq.com/account/settings/agent/latest
+
+Entregable: los dos scripts completos y el bloque templatefile() actualizado en ec2.tf.
+```
+
