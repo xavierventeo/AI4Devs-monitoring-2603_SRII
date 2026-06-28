@@ -72,3 +72,32 @@ Requisitos:
 Entregable: los dos scripts completos y el bloque templatefile() actualizado en ec2.tf.
 ```
 
+---
+
+## Prompt 4 — Crear el dashboard de monitorización en Datadog
+
+```
+Crea el recurso datadog_dashboard en tf/dashboard.tf para monitorizar las instancias
+EC2 lti-project-backend y lti-project-frontend.
+
+Dashboard:
+- Nombre: "LTI Project - EC2 Monitoring Dashboard", layout_type = "ordered"
+- Widgets timeseries_definition para: CPU Utilization, Network In, Network Out,
+  Disk Read Ops, Disk Write Ops, Status Check Failed
+
+Cómo construir las queries:
+- Sintaxis: "avg:aws.ec2.<metrica>{*} by {instance_id}"
+- Los filtros de Datadog usan : en lugar de = (ej: host:mi-instancia)
+- Las métricas AWS siguen el patrón aws.ec2.<nombre_cloudwatch_en_snake_case>
+
+Cómo referenciar recursos existentes de Terraform:
+- IDs de instancia: aws_instance.backend.id / aws_instance.frontend.id
+- IPs públicas: aws_instance.backend.public_ip / aws_instance.frontend.public_ip
+
+Añade en tf/outputs.tf los outputs de las IPs públicas de ambas instancias.
+
+Referencia: https://registry.terraform.io/providers/DataDog/datadog/latest/docs/resources/dashboard
+
+Entregable: tf/dashboard.tf completo y tf/outputs.tf con los outputs de las IPs.
+
+```
