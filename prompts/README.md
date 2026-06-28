@@ -44,10 +44,9 @@ Datadog (EU)
 | S3 Bucket | `lti-project-code-bucket-xvb` con `backend.zip` y `frontend.zip` |
 | EC2 backend | `t3.micro`, puerto `8080`, Amazon Linux 2 + Docker |
 | EC2 frontend | `t3.micro`, puerto `3000`, Amazon Linux 2 + Docker |
-| IAM Role | Acceso S3 desde EC2 + permisos CloudWatch para Datadog |
+| IAM Role | Acceso S3 desde EC2 |
 | Security Groups | SSH (22) y puertos de aplicación (8080/3000) |
-| Datadog Dashboard | Métricas del agente por host |
-| Datadog Integration | `datadog_integration_aws` filtrando tag `Datadog:true` |
+| Datadog Dashboard | Métricas del agente por host (`tf/datadog.tf`) |
 
 
 ---
@@ -62,14 +61,7 @@ Añadido el proveedor Datadog apuntando al site EU, con las claves declaradas co
 - `tf/terraform.tfvars` — valores reales, gitignoreado
 - `tf/terraform.tfvars.example` — plantilla commiteada
 
-### 2. Integración AWS-Datadog (`tf/datadog.tf`)
-
-Configurada la integración oficial con tres bloques:
-- Política IAM con permisos CloudWatch, EC2, Logs y Tags
-- Data source de instancias EC2 en estado `running`
-- Recurso `datadog_integration_aws` filtrando por tag `Datadog:true`
-
-### 3. Agente Datadog en EC2 (`tf/scripts/`)
+### 2. Agente Datadog en EC2 (`tf/scripts/`)
 
 Instalación del agente Datadog v7 en ambas instancias antes de arrancar Docker. La `DD_API_KEY` se inyecta en tiempo de despliegue via `templatefile()` en lugar de estar hardcodeada en el script.
 
@@ -79,7 +71,7 @@ DD_API_KEY="${datadog_api_key}" DD_SITE="datadoghq.eu" DD_AGENT_MAJOR_VERSION=7 
 systemctl start datadog-agent
 ```
 
-### 4. Dashboard de monitorización (`tf/dashboard.tf`)
+### 3. Dashboard de monitorización (`tf/datadog.tf`)
 
 Dashboard con 6 widgets usando métricas del agente Datadog (`system.*`):
 
@@ -106,9 +98,8 @@ Resumen de los prompts:
 |---|---|
 | Prompt 0 | Análisis del repositorio y comprensión del proyecto |
 | Prompt 1 | Configurar el proveedor Datadog con buenas prácticas de variables |
-| Prompt 2 | Integración oficial AWS-Datadog via `datadog_integration_aws` |
-| Prompt 3 | Instalación del agente Datadog v7 en las instancias EC2 |
-| Prompt 4 | Dashboard de monitorización con métricas del agente |
+| Prompt 2 | Instalación del agente Datadog v7 en las instancias EC2 |
+| Prompt 3 | Dashboard de monitorización con métricas del agente |
 
 ---
 
@@ -355,20 +346,3 @@ systemctl enable docker
 systemctl start docker
 ```
 
----
-
-### Desafío 9 — Dashboard usaba métricas de CloudWatch en lugar del agente
-
-**Problema:** las queries originales usaban el namespace `aws.ec2.*` (CloudWatch), que requiere la integración `datadog_integration_aws` funcionando. Como esta no se desplegó correctamente, el dashboard quedaba vacío. No era consciente de esta distinción al redactar el Prompt 4, y el prompt no fue del todo eficiente al no especificar explícitamente la fuente de métricas (agente vs CloudWatch), lo que llevó a generar queries incorrectas para el contexto del proyecto. El prompt entregado en [datadog-aws-prompts.md](./datadog-aws-prompts.md) contiene ya la versión corregida con las queries del agente (`system.*`).
-
-**Solución:** cambiar las queries al namespace `system.*` del agente Datadog, ya instalado en las instancias:
-
-| Métrica | CloudWatch (original) | Agente (solución) |
-|---|---|---|
-| CPU | `aws.ec2.cpuutilization` | `system.cpu.user` |
-| Network In | `aws.ec2.network_in` | `system.net.bytes_rcvd` |
-| Network Out | `aws.ec2.network_out` | `system.net.bytes_sent` |
-| Disk Read | `aws.ec2.disk_read_ops` | `system.io.r_s` |
-| Disk Write | `aws.ec2.disk_write_ops` | `system.io.w_s` |
-
----

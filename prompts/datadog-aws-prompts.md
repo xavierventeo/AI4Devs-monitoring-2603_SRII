@@ -31,31 +31,7 @@ Entregable: provider "datadog" en main.tf, variables.tf, terraform.tfvars, terra
 
 ---
 
-## Prompt 2 — Configurar la integración AWS-Datadog
-
-```
-Configura la integración oficial entre AWS y Datadog para que pueda leer métricas
-de CloudWatch de las instancias EC2. Coloca todo en tf/datadog.tf.
-
-Necesito:
-1. Política IAM con permisos: cloudwatch:GetMetricData/ListMetrics,
-   ec2:DescribeInstances, logs:Describe*/GetLogEvents/FilterLogEvents,
-   tag:GetResources/GetTagKeys/GetTagValues
-2. Data source con las instancias EC2 en estado "running"
-3. Recurso datadog_integration_aws filtrando por tag Datadog:true
-
-Sin claves hardcodeadas.
-
-Referencias:
-- https://docs.datadoghq.com/integrations/amazon_web_services/
-- https://registry.terraform.io/providers/DataDog/datadog/latest/docs/resources/integration_aws
-
-Entregable: fichero tf/datadog.tf completo con los tres bloques.
-```
-
----
-
-## Prompt 3 — Instalar el agente Datadog en las instancias EC2
+## Prompt 2 — Instalar el agente Datadog en las instancias EC2
 
 ```
 Modifica tf/scripts/backend_user_data.sh y frontend_user_data.sh para instalar
@@ -74,10 +50,10 @@ Entregable: los dos scripts completos y el bloque templatefile() actualizado en 
 
 ---
 
-## Prompt 4 — Crear el dashboard de monitorización en Datadog
+## Prompt 3 — Crear el dashboard de monitorización en Datadog
 
 ```
-Crea el recurso datadog_dashboard en tf/dashboard.tf para monitorizar las instancias
+Crea el recurso datadog_dashboard en tf/datadog.tf para monitorizar las instancias
 EC2 lti-project-backend y lti-project-frontend.
 
 Dashboard:
@@ -102,6 +78,6 @@ Añade en tf/outputs.tf los outputs de las IPs públicas de ambas instancias.
 
 Referencia: https://registry.terraform.io/providers/DataDog/datadog/latest/docs/resources/dashboard
 
-Entregable: tf/dashboard.tf completo y tf/outputs.tf con los outputs de las IPs.
+Entregable: tf/datadog.tf completo y tf/outputs.tf con los outputs de las IPs.
 
 ```

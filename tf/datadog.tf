@@ -1,40 +1,65 @@
-data "aws_caller_identity" "current" {}
+resource "datadog_dashboard" "ec2_dashboard" {
+  title       = "LTI Project - EC2 Monitoring Dashboard"
+  description = "Dashboard para monitorizar las instancias EC2 lti-project-backend y lti-project-frontend"
+  layout_type = "ordered"
 
-resource "aws_iam_policy" "datadog_policy" {
-  name        = "DatadogAWSPolicy"
-  description = "Permisos para que Datadog lea métricas de CloudWatch y metadatos de EC2"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "cloudwatch:GetMetricData",
-          "cloudwatch:ListMetrics",
-          "ec2:DescribeInstances",
-          "logs:DescribeLogGroups",
-          "logs:DescribeLogStreams",
-          "logs:GetLogEvents",
-          "logs:FilterLogEvents",
-          "tag:GetResources",
-          "tag:GetTagKeys",
-          "tag:GetTagValues"
-        ]
-        Resource = "*"
+  widget {
+    timeseries_definition {
+      title = "CPU Utilization"
+      request {
+        q            = "avg:system.cpu.user{*} by {host}"
+        display_type = "line"
       }
-    ]
-  })
-}
-
-data "aws_instances" "running" {
-  filter {
-    name   = "instance-state-name"
-    values = ["running"]
+    }
   }
-}
 
-resource "datadog_integration_aws" "main" {
-  account_id  = data.aws_caller_identity.current.account_id
-  role_name   = "DatadogIntegrationRole"
-  filter_tags = ["Datadog:true"]
+  widget {
+    timeseries_definition {
+      title = "Network In"
+      request {
+        q            = "avg:system.net.bytes_rcvd{*} by {host}"
+        display_type = "line"
+      }
+    }
+  }
+
+  widget {
+    timeseries_definition {
+      title = "Network Out"
+      request {
+        q            = "avg:system.net.bytes_sent{*} by {host}"
+        display_type = "line"
+      }
+    }
+  }
+
+  widget {
+    timeseries_definition {
+      title = "Disk Read Ops"
+      request {
+        q            = "avg:system.io.r_s{*} by {host}"
+        display_type = "line"
+      }
+    }
+  }
+
+  widget {
+    timeseries_definition {
+      title = "Disk Write Ops"
+      request {
+        q            = "avg:system.io.w_s{*} by {host}"
+        display_type = "line"
+      }
+    }
+  }
+
+  widget {
+    timeseries_definition {
+      title = "Agent Running"
+      request {
+        q            = "avg:datadog.agent.running{*} by {host}"
+        display_type = "bars"
+      }
+    }
+  }
 }
