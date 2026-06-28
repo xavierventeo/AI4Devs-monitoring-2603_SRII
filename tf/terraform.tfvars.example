@@ -1,0 +1,3 @@
+datadog_api_url = "https://api.datadoghq.eu"
+datadog_api_key = "my_api_key_de_datadog"
+datadog_app_key = "my_app_key_de_datadog"

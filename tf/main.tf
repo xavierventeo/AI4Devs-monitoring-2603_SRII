@@ -17,18 +17,7 @@ provider "datadog" {
   api_key = var.datadog_api_key
   app_key = var.datadog_app_key
   # Configura la región de Datadog
-  api_url = "https://api.us5.datadoghq.com"
-}
-
-# Variables de entorno para las claves de Datadog
-variable "datadog_api_key" {
-  description = "API Key para Datadog"
-  type        = string
-}
-
-variable "datadog_app_key" {
-  description = "App Key para Datadog"
-  type        = string
+  api_url = var.datadog_api_url
 }
 
 # Política de IAM para permitir a Datadog acceder a CloudWatch
