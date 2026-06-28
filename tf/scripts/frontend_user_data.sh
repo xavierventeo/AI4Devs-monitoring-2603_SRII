@@ -7,10 +7,11 @@ systemctl start datadog-agent
 # Install Docker
 yum update -y
 yum install -y docker unzip
-service docker start
+systemctl enable docker
+systemctl start docker
 
 # Deploy frontend from S3
-aws s3 cp s3://lti-project-code-bucket/frontend.zip /home/ec2-user/frontend.zip
+aws s3 cp s3://lti-project-code-bucket-xvb/frontend.zip /home/ec2-user/frontend.zip
 unzip /home/ec2-user/frontend.zip -d /home/ec2-user/
 
 cd /home/ec2-user/frontend
