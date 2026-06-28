@@ -1,12 +1,14 @@
 # Ignore in all directories
 **/.DS_Store
-#**/.env
+**/.env
 **/.env.example
 **/node_modules
 **/prompts_master.md
 
 **/.terraform/
-**/.terraform.lock.hcl  
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
 
 # other dependencies
 **/.pnp
