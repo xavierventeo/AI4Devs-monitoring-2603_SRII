@@ -31,3 +31,26 @@ Entregable: provider "datadog" en main.tf, variables.tf, terraform.tfvars, terra
 
 ---
 
+## Prompt 2 — Configurar la integración AWS-Datadog
+
+```
+Configura la integración oficial entre AWS y Datadog para que pueda leer métricas
+de CloudWatch de las instancias EC2. Coloca todo en tf/datadog.tf.
+
+Necesito:
+1. Política IAM con permisos: cloudwatch:GetMetricData/ListMetrics,
+   ec2:DescribeInstances, logs:Describe*/GetLogEvents/FilterLogEvents,
+   tag:GetResources/GetTagKeys/GetTagValues
+2. Data source con las instancias EC2 en estado "running"
+3. Recurso datadog_integration_aws filtrando por tag Datadog:true
+
+Sin claves hardcodeadas.
+
+Referencias:
+- https://docs.datadoghq.com/integrations/amazon_web_services/
+- https://registry.terraform.io/providers/DataDog/datadog/latest/docs/resources/integration_aws
+
+Entregable: fichero tf/datadog.tf completo con los tres bloques.
+```
+
+---
