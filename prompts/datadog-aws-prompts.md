@@ -85,10 +85,14 @@ Dashboard:
 - Widgets timeseries_definition para: CPU Utilization, Network In, Network Out,
   Disk Read Ops, Disk Write Ops, Status Check Failed
 
-Cómo construir las queries:
-- Sintaxis: "avg:aws.ec2.<metrica>{*} by {instance_id}"
-- Los filtros de Datadog usan : en lugar de = (ej: host:mi-instancia)
-- Las métricas AWS siguen el patrón aws.ec2.<nombre_cloudwatch_en_snake_case>
+Fuente de métricas: el agente Datadog instalado en las instancias (Prompt 3), no CloudWatch.
+Las métricas del agente usan el namespace system.* y se agrupan por {host}:
+- CPU:        avg:system.cpu.user{*} by {host}
+- Network In: avg:system.net.bytes_rcvd{*} by {host}
+- Network Out: avg:system.net.bytes_sent{*} by {host}
+- Disk Read:  avg:system.io.r_s{*} by {host}
+- Disk Write: avg:system.io.w_s{*} by {host}
+- Agent up:   avg:datadog.agent.running{*} by {host}
 
 Cómo referenciar recursos existentes de Terraform:
 - IDs de instancia: aws_instance.backend.id / aws_instance.frontend.id
