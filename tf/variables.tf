@@ -1,11 +1,13 @@
 variable "datadog_api_key" {
   description = "API Key para Datadog"
   type        = string
+  sensitive   = true
 }
 
 variable "datadog_app_key" {
   description = "App Key para Datadog"
   type        = string
+  sensitive   = true
 }
 
 variable "datadog_api_url" {
