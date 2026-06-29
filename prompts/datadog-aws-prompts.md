@@ -80,3 +80,31 @@ Reference: https://registry.terraform.io/providers/DataDog/datadog/latest/docs/r
 
 Deliverable: complete tf/datadog.tf and tf/outputs.tf with the IP outputs.
 ```
+
+---
+
+## PR Review Fixes
+
+### Fix 1 — Harden Datadog Agent Installer Execution (Blocking)
+
+```
+In tf/scripts/backend_user_data.sh and tf/scripts/frontend_user_data.sh, the Datadog installer is executed directly from a pipe using bash -c "$(curl -L ...)". Please download the installer script with curl --fail to a temporary file, execute the script, and then clean up the file.
+```
+
+### Fix 2 — Redact Secret Variables (Security)
+
+```
+The variables datadog_api_key and datadog_app_key in tf/variables.tf are missing the sensitive = true attribute. Please declare them as sensitive so Terraform redacts their values in plan/apply outputs.
+```
+
+### Fix 3 — Scope Dashboard Widget Queries (Best Practice)
+
+```
+In tf/datadog.tf, the widget metric queries use a wildcard host selector {*}. Please update the queries to filter by your project-specific tags so they only monitor your frontend and backend EC2 instances.
+```
+
+### Fix 4 — Language Policy Violation (Blocking)
+
+```
+According to the organization's policy, all Markdown documentation (READMEs, deliverables, guides, prompts, etc.) must be written in English. The newly added files under prompts/ (README.md and datadog-aws-prompts.md) are currently in Spanish. Please translate them to English.
+```
