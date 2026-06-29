@@ -1,21 +1,21 @@
-# Implementando un Canal de Monitorización Datadog con Terraform en AWS
+# Implementing a Datadog Monitoring Pipeline with Terraform on AWS
 
-Canal de observabilidad completo sobre infraestructura AWS usando Terraform como IaC y Datadog como plataforma de monitorización. El sistema despliega dos instancias EC2 (backend y frontend) con el agente Datadog instalado, un dashboard de métricas.
-
----
-
-## Índice
-
-1. [Arquitectura](#arquitectura)
-2. [Cambios realizados](#cambios-realizados)
-3. [Prompts utilizados](#prompts-utilizados)
-4. [Dashboard en Datadog](#dashboard-en-datadog)
-5. [Setup y configuración](#setup-y-configuración)
-6. [Desafíos encontrados](#desafíos-encontrados)
+Complete observability pipeline on AWS infrastructure using Terraform as IaC and Datadog as the monitoring platform. The system deploys two EC2 instances (backend and frontend) with the Datadog agent installed, and a metrics dashboard.
 
 ---
 
-## Arquitectura
+## Table of Contents
+
+1. [Architecture](#architecture)
+2. [Changes made](#changes-made)
+3. [Prompts used](#prompts-used)
+4. [Dashboard in Datadog](#dashboard-in-datadog)
+5. [Setup and configuration](#setup-and-configuration)
+6. [Challenges encountered](#challenges-encountered)
+
+---
+
+## Architecture
 
 ```
 Internet
@@ -34,36 +34,36 @@ S3 Bucket (lti-project-code-bucket-xvb)
 
 Datadog (EU)
    └── Dashboard: LTI Project - EC2 Monitoring Dashboard
-         └── Métricas: CPU, Network In/Out, Disk R/W, Agent status
+         └── Metrics: CPU, Network In/Out, Disk R/W, Agent status
 ```
 
-### Recursos Terraform desplegados
+### Terraform resources deployed
 
-| Recurso | Detalle |
+| Resource | Detail |
 |---|---|
-| S3 Bucket | `lti-project-code-bucket-xvb` con `backend.zip` y `frontend.zip` |
-| EC2 backend | `t3.micro`, puerto `8080`, Amazon Linux 2 + Docker |
-| EC2 frontend | `t3.micro`, puerto `3000`, Amazon Linux 2 + Docker |
-| IAM Role | Acceso S3 desde EC2 |
-| Security Groups | SSH (22) y puertos de aplicación (8080/3000) |
-| Datadog Dashboard | Métricas del agente por host (`tf/datadog.tf`) |
+| S3 Bucket | `lti-project-code-bucket-xvb` with `backend.zip` and `frontend.zip` |
+| EC2 backend | `t3.micro`, port `8080`, Amazon Linux 2 + Docker |
+| EC2 frontend | `t3.micro`, port `3000`, Amazon Linux 2 + Docker |
+| IAM Role | S3 access from EC2 |
+| Security Groups | SSH (22) and application ports (8080/3000) |
+| Datadog Dashboard | Agent metrics per host (`tf/datadog.tf`) |
 
 
 ---
 
-## Cambios realizados
+## Changes made
 
-### 1. Proveedor Datadog en Terraform (`tf/main.tf`, `tf/variables.tf`)
+### 1. Datadog provider in Terraform (`tf/main.tf`, `tf/variables.tf`)
 
-Añadido el proveedor Datadog apuntando al site EU, con las claves declaradas como variables sin valores hardcodeados. Distribución de ficheros siguiendo buenas prácticas:
+Added the Datadog provider pointing to the EU site, with keys declared as variables without hardcoded values. File distribution following best practices:
 
-- `tf/variables.tf` — declaraciones de tipo sin valores
-- `tf/terraform.tfvars` — valores reales, gitignoreado
-- `tf/terraform.tfvars.example` — plantilla commiteada
+- `tf/variables.tf` — type declarations without values
+- `tf/terraform.tfvars` — real values, gitignored
+- `tf/terraform.tfvars.example` — committed template
 
-### 2. Agente Datadog en EC2 (`tf/scripts/`)
+### 2. Datadog agent on EC2 (`tf/scripts/`)
 
-Instalación del agente Datadog v7 en ambas instancias antes de arrancar Docker. La `DD_API_KEY` se inyecta en tiempo de despliegue via `templatefile()` en lugar de estar hardcodeada en el script.
+Installation of the Datadog agent v7 on both instances before starting Docker. The `DD_API_KEY` is injected at deploy time via `templatefile()` instead of being hardcoded in the script.
 
 ```bash
 DD_API_KEY="${datadog_api_key}" DD_SITE="datadoghq.eu" DD_AGENT_MAJOR_VERSION=7 \
@@ -71,9 +71,9 @@ DD_API_KEY="${datadog_api_key}" DD_SITE="datadoghq.eu" DD_AGENT_MAJOR_VERSION=7 
 systemctl start datadog-agent
 ```
 
-### 3. Dashboard de monitorización (`tf/datadog.tf`)
+### 3. Monitoring dashboard (`tf/datadog.tf`)
 
-Dashboard con 6 widgets usando métricas del agente Datadog (`system.*`):
+Dashboard with 6 widgets using Datadog agent metrics (`system.*`):
 
 | Widget | Query |
 |---|---|
@@ -86,48 +86,48 @@ Dashboard con 6 widgets usando métricas del agente Datadog (`system.*`):
 
 ---
 
-## Prompts utilizados
+## Prompts used
 
-Los prompts principales usados para generar el código Terraform están documentados en:
+The main prompts used to generate the Terraform code are documented in:
 
 ➡ [datadog-aws-prompts.md](./datadog-aws-prompts.md)
 
-Resumen de los prompts:
+Summary of prompts:
 
-| Prompt | Objetivo |
+| Prompt | Goal |
 |---|---|
-| Prompt 0 | Análisis del repositorio y comprensión del proyecto |
-| Prompt 1 | Configurar el proveedor Datadog con buenas prácticas de variables |
-| Prompt 2 | Instalación del agente Datadog v7 en las instancias EC2 |
-| Prompt 3 | Dashboard de monitorización con métricas del agente |
+| Prompt 0 | Repository analysis and project understanding |
+| Prompt 1 | Configure the Datadog provider with variable best practices |
+| Prompt 2 | Install the Datadog agent v7 on the EC2 instances |
+| Prompt 3 | Monitoring dashboard with agent metrics |
 
 ---
 
-## Dashboard en Datadog
+## Dashboard in Datadog
 
-### Dashboard EC2 Monitoring
+### EC2 Monitoring Dashboard
 
-Dashboard completo con métricas de CPU, red y disco agrupadas por host:
+Complete dashboard with CPU, network and disk metrics grouped by host:
 
 ![EC2 Monitoring Dashboard](images/EC2%20Monitoring%20Dashboard.png)
 
-### Detalle CPU Utilization
+### CPU Utilization detail
 
-Vista detallada de la métrica de CPU por instancia:
+Detailed view of the CPU metric per instance:
 
 ![CPU Utilization Detail](images/CPU%20Utilization%20Detail.png)
 
-### Vista de hosts
+### Host view
 
-Instancias EC2 registradas en Datadog con el agente activo:
+EC2 instances registered in Datadog with the active agent:
 
 ![Host View](images/Host%20View.png)
 
 ---
 
-## Setup y configuración
+## Setup and configuration
 
-### Prerrequisitos
+### Prerequisites
 
 ```bash
 brew install terraform awscli
@@ -137,77 +137,77 @@ aws --version
 zip --version
 ```
 
-### Configuración de AWS
+### AWS configuration
 
-#### 1. Crear credenciales en IAM
+#### 1. Create credentials in IAM
 
-1. Consola AWS → **IAM** → **Users** → tu usuario
-2. Pestaña **Security credentials** → **Create access key** → elige **CLI**
-3. Permisos necesarios: `AmazonEC2FullAccess`, `AmazonS3FullAccess`, `IAMFullAccess`
-4. Copia el `Access Key ID` y el `Secret Access Key` — solo se muestran una vez
+1. AWS Console → **IAM** → **Users** → your user
+2. **Security credentials** tab → **Create access key** → choose **CLI**
+3. Required permissions: `AmazonEC2FullAccess`, `AmazonS3FullAccess`, `IAMFullAccess`
+4. Copy the `Access Key ID` and the `Secret Access Key` — they are only shown once
 
-#### 2. Configurar el CLI
+#### 2. Configure the CLI
 
 ```bash
 aws configure
 ```
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
 | AWS Access Key ID | `AKIA...` |
 | AWS Secret Access Key | `xxxx...` |
 | Default region name | `us-east-1` |
 | Default output format | `json` |
 
-#### 3. Verificar acceso
+#### 3. Verify access
 
 ```bash
 aws sts get-caller-identity
 ```
 
-### Configuración de Datadog
+### Datadog configuration
 
-#### 1. Obtener las claves
+#### 1. Obtain the keys
 
-1. **Organization Settings → API Keys** → copia el valor **Key** (no el Key ID)
-2. **Organization Settings → Application Keys** → copia el valor **Key**
+1. **Organization Settings → API Keys** → copy the **Key** value (not the Key ID)
+2. **Organization Settings → Application Keys** → copy the **Key** value
 
-> La cuenta debe estar en `datadoghq.eu`. Verifica la URL cuando estés logado.
+> The account must be on `datadoghq.eu`. Verify the URL when logged in.
 
-#### 2. Configurar las claves
+#### 2. Configure the keys
 
-Copia la plantilla y rellena con tus valores reales:
+Copy the template and fill in your real values:
 
 ```bash
 cp tf/terraform.tfvars.example tf/terraform.tfvars
-# Edita terraform.tfvars con tus claves reales
+# Edit terraform.tfvars with your real keys
 ```
 
 ```hcl
-# tf/terraform.tfvars (gitignoreado)
+# tf/terraform.tfvars (gitignored)
 datadog_api_url = "https://api.datadoghq.eu"
-datadog_api_key = "tu_api_key_valor_secreto"
-datadog_app_key = "tu_app_key_valor"
+datadog_api_key = "your_secret_api_key_value"
+datadog_app_key = "your_app_key_value"
 ```
 
-### Despliegue con Terraform
+### Deployment with Terraform
 
 ```bash
-# 1. Generar los ZIPs del código (desde la raíz del proyecto)
+# 1. Generate the code ZIPs (from the project root)
 ./generar-zip.sh
 
-# 2. Inicializar Terraform (solo la primera vez)
+# 2. Initialize Terraform (first time only)
 cd tf/
 terraform init
 
-# 3. Revisar los cambios
+# 3. Review the changes
 terraform plan
 
-# 4. Desplegar
-terraform apply   # escribe "yes" para confirmar
+# 4. Deploy
+terraform apply   # type "yes" to confirm
 ```
 
-### Verificar el despliegue
+### Verify the deployment
 
 ```bash
 aws ec2 describe-instances \
@@ -216,84 +216,84 @@ aws ec2 describe-instances \
   --output table
 ```
 
-### Destruir la infraestructura al finalizar el ejercicio
+### Destroy the infrastructure when finished
 
 ```bash
 cd tf/
-terraform destroy   # escribe "yes" para confirmar
+terraform destroy   # type "yes" to confirm
 ```
 
 ---
 
-## Desafíos encontrados
+## Challenges encountered
 
-### Desafío 1 — Secretos expuestos en el control de versiones
+### Challenge 1 — Secrets exposed in version control
 
-**Problema:** varios ficheros con secretos estaban commiteados en el repo. En un repositorio público cualquier atacante o scanner automático puede recuperarlos del historial aunque los ficheros se eliminen después.
+**Problem:** several files containing secrets were committed to the repo. In a public repository any attacker or automated scanner can retrieve them from the history even after the files are removed.
 
-**Solución:**
+**Solution:**
 
 ```bash
-# .gitignore — líneas corregidas/añadidas
+# .gitignore — corrected/added lines
 **/.env
 **/terraform.tfvars
 **/terraform.tfstate
 **/terraform.tfstate.backup
 **/.terraform.tfstate.lock.info
 
-# Sacar los ficheros del índice sin borrarlos del disco
+# Remove files from the index without deleting them from disk
 git rm --cached .env backend/.env tf/terraform.tfstate tf/terraform.tfstate.backup
 ```
 
-> El `tfstate` en producción debe ir en un backend remoto S3 + DynamoDB para evitar conflictos en equipo y proteger el estado.
+> In production, `tfstate` should be stored in a remote S3 + DynamoDB backend to avoid team conflicts and protect the state.
 
-**Inventario de secretos comprometidos en el repo original:**
+**Inventory of secrets compromised in the original repo:**
 
-| Secreto | Fichero | Solución |
+| Secret | File | Solution |
 |---|---|---|
-| `DD_API_KEY='76cd5e07...'` | `tf/scripts/*.sh` | Inyectar via `templatefile()` |
-| `DB_PASSWORD=D1ymf8wy...` | `.env`, `backend/.env` | Corregir `.gitignore` |
-| IDs y ARNs de infraestructura | `tf/terraform.tfstate` | Añadir a `.gitignore` |
+| `DD_API_KEY='76cd5e07...'` | `tf/scripts/*.sh` | Inject via `templatefile()` |
+| `DB_PASSWORD=D1ymf8wy...` | `.env`, `backend/.env` | Fix `.gitignore` |
+| Infrastructure IDs and ARNs | `tf/terraform.tfstate` | Add to `.gitignore` |
 
 ---
 
-### Desafío 2 — Confusión entre API Key y App Key de Datadog
+### Challenge 2 — Confusion between Datadog API Key and App Key
 
-**Problema:** Datadog tiene dos tipos de credenciales en secciones distintas de la UI, con campos que pueden confundirse fácilmente:
+**Problem:** Datadog has two types of credentials in different sections of the UI, with fields that can be easily confused:
 
-| Variable Terraform | Sección en Datadog | Campo a copiar |
+| Terraform Variable | Section in Datadog | Field to copy |
 |---|---|---|
-| `datadog_api_key` | Organization Settings → **API Keys** | **Key** (valor secreto, no el Key ID) |
+| `datadog_api_key` | Organization Settings → **API Keys** | **Key** (secret value, not the Key ID) |
 | `datadog_app_key` | Organization Settings → **Application Keys** | **Key** |
 
-**Error frecuente:** copiar el `Key ID` de API Keys en lugar del valor secreto, o usar claves de **Personal Settings** en lugar de **Organization Settings**.
+**Common mistake:** copying the `Key ID` from API Keys instead of the secret value, or using keys from **Personal Settings** instead of **Organization Settings**.
 
 ---
 
-### Desafío 3 — `DD_SITE` apuntando a la región incorrecta
+### Challenge 3 — `DD_SITE` pointing to the wrong region
 
-**Problema:** los scripts originales tenían `DD_SITE="datadoghq.com"` (US1) pero la cuenta Datadog está en EU. El agente enviaba métricas al site incorrecto → datos vacíos en el dashboard.
+**Problem:** the original scripts had `DD_SITE="datadoghq.com"` (US1) but the Datadog account is on EU. The agent was sending metrics to the wrong site → empty data in the dashboard.
 
-**Solución:** alinear scripts y provider al mismo site:
+**Solution:** align scripts and provider to the same site:
 
 ```bash
-DD_SITE="datadoghq.eu"          # en los scripts de user_data
-api_url = "https://api.datadoghq.eu"  # en el provider de Terraform
+DD_SITE="datadoghq.eu"                # in the user_data scripts
+api_url = "https://api.datadoghq.eu"  # in the Terraform provider
 ```
 
 ---
 
-### Desafío 4 — API key de Datadog expuesta en el user-data de la EC2
+### Challenge 4 — Datadog API key exposed in EC2 user-data
 
-**Problema:** aunque la `DD_API_KEY` ya no está hardcodeada en el código fuente, AWS la almacena en texto plano como `user_data` de la instancia, accesible desde dentro:
+**Problem:** although the `DD_API_KEY` is no longer hardcoded in source code, AWS stores it in plain text as the instance `user_data`, accessible from within the instance:
 
 ```bash
 curl http://169.254.169.254/latest/user-data
 ```
 
-**Solución actual:** inyección via `templatefile()` — elimina la exposición en código fuente pero no en los metadatos de la instancia.
+**Current solution:** injection via `templatefile()` — removes exposure in source code but not in instance metadata.
 
-**Solución recomendada para producción, aunque no aplicada en el ejercicio:** AWS Secrets Manager:
+**Recommended production solution (not applied in this exercise):** AWS Secrets Manager:
 
 ```bash
 DD_API_KEY=$(aws secretsmanager get-secret-value \
@@ -303,19 +303,19 @@ DD_API_KEY=$(aws secretsmanager get-secret-value \
 
 ---
 
-### Desafío 5 — Tipos de instancia EC2 no elegibles para Free Tier
+### Challenge 5 — EC2 instance types not eligible for Free Tier
 
-**Problema:** `t2.micro` y `t2.medium` devolvieron `InvalidParameterCombination: not eligible for Free Tier`.
+**Problem:** `t2.micro` and `t2.medium` returned `InvalidParameterCombination: not eligible for Free Tier`.
 
-**Solución:** cambiar ambas instancias a `t3.micro` en `tf/ec2.tf`.
+**Solution:** change both instances to `t3.micro` in `tf/ec2.tf`.
 
 ---
 
-### Desafío 6 — tfstate del repositorio original causaba conflictos en el primer despliegue
+### Challenge 6 — tfstate from the original repository caused conflicts on first deployment
 
-**Problema:** el repo incluía el `terraform.tfstate` original con referencias a recursos de la cuenta AWS y Datadog del repositorio original. Al ejecutar `terraform plan` por primera vez, Terraform intentaba refrescar esos recursos con las nuevas credenciales → errores 401/403.
+**Problem:** the repo included the original `terraform.tfstate` with references to AWS and Datadog resources from the original repository account. When running `terraform plan` for the first time, Terraform tried to refresh those resources with the new credentials → 401/403 errors.
 
-**Solución:** eliminar el estado heredado antes del primer despliegue:
+**Solution:** remove the inherited state before the first deployment:
 
 ```bash
 rm tf/terraform.tfstate tf/terraform.tfstate.backup
@@ -323,26 +323,25 @@ rm tf/terraform.tfstate tf/terraform.tfstate.backup
 
 ---
 
-### Desafío 7 — Nombre del bucket S3 ya ocupado globalmente
+### Challenge 7 — S3 bucket name already taken globally
 
-**Problema:** `lti-project-code-bucket` ya existía — los nombres de S3 son únicos a nivel mundial (`BucketAlreadyExists`).
+**Problem:** `lti-project-code-bucket` already existed — S3 names are globally unique (`BucketAlreadyExists`).
 
-**Solución:** añadir sufijo único: `lti-project-code-bucket-xvb` en `tf/s3.tf` y en los scripts de user_data.
+**Solution:** add a unique suffix: `lti-project-code-bucket-xvb` in `tf/s3.tf` and in the user_data scripts.
 
 ---
 
-### Desafío 8 — Docker no arranca automáticamente tras reinicio de la EC2
+### Challenge 8 — Docker does not start automatically after EC2 reboot
 
-**Problema:** `service docker start` arranca Docker una sola vez pero no lo registra como servicio del sistema. Tras un reinicio la instancia quedaba sin Docker activo.
+**Problem:** `service docker start` starts Docker once but does not register it as a system service. After a reboot the instance had no active Docker.
 
-**Solución:**
+**Solution:**
 
 ```bash
-# Antes
+# Before
 service docker start
 
-# Después
+# After
 systemctl enable docker
 systemctl start docker
 ```
-

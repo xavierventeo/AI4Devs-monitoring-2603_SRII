@@ -1,83 +1,82 @@
-# Prompts — Integración Datadog con AWS via Terraform
+# Prompts — Datadog Integration with AWS via Terraform
 
-Prompts utilizados para generar el código Terraform de monitorización Datadog sobre infraestructura AWS.
-
----
-
-## Prompt 0 — Entender el proyecto
-
-```
-Eres un Site Reliability Engineer especializado en observabilidad e infraestructura como código.
-Analiza el repositorio y hazme un resumen de su contenido. Presta especial atención a la carpeta tf/ y a los scripts de user_data de las instancias EC2.
-```
+Prompts used to generate the Terraform code for Datadog monitoring on AWS infrastructure.
 
 ---
 
-## Prompt 1 — Configurar el proveedor Datadog en Terraform
+## Prompt 0 — Understand the project
 
 ```
-Añade el proveedor Datadog a tf/main.tf junto al proveedor AWS existente.
-- Site EU: api_url = "https://api.datadoghq.eu"
-- Referencia: https://registry.terraform.io/providers/DataDog/datadog/latest/docs
-
-Distribución de variables siguiendo buenas prácticas:
-- tf/variables.tf: declara datadog_api_key, datadog_app_key y datadog_api_url como string sin valores
-- tf/terraform.tfvars: valores reales de las tres variables → añadir a .gitignore
-- tf/terraform.tfvars.example: plantilla con valores de ejemplo → commiteado
-- .env: solo configuración de la aplicación, sin variables TF_VAR_*
-
-Entregable: provider "datadog" en main.tf, variables.tf, terraform.tfvars, terraform.tfvars.example y .gitignore actualizado para que no haya datos sensibles en control de versiones.
+You are a Site Reliability Engineer specialised in observability and infrastructure as code.
+Analyse the repository and give me a summary of its contents. Pay special attention to the tf/ folder and the EC2 instance user_data scripts.
 ```
 
 ---
 
-## Prompt 2 — Instalar el agente Datadog en las instancias EC2
+## Prompt 1 — Configure the Datadog provider in Terraform
 
 ```
-Modifica tf/scripts/backend_user_data.sh y frontend_user_data.sh para instalar
-el agente Datadog v7 antes de arrancar Docker.
+Add the Datadog provider to tf/main.tf alongside the existing AWS provider.
+- EU site: api_url = "https://api.datadoghq.eu"
+- Reference: https://registry.terraform.io/providers/DataDog/datadog/latest/docs
 
-Requisitos:
+Variable distribution following best practices:
+- tf/variables.tf: declare datadog_api_key, datadog_app_key and datadog_api_url as string without values
+- tf/terraform.tfvars: real values for the three variables → add to .gitignore
+- tf/terraform.tfvars.example: template with example values → committed
+- .env: application configuration only, no TF_VAR_* variables
+
+Deliverable: provider "datadog" in main.tf, variables.tf, terraform.tfvars, terraform.tfvars.example and updated .gitignore so that no sensitive data is in version control.
+```
+
+---
+
+## Prompt 2 — Install the Datadog agent on the EC2 instances
+
+```
+Modify tf/scripts/backend_user_data.sh and frontend_user_data.sh to install
+the Datadog agent v7 before starting Docker.
+
+Requirements:
 - DD_SITE="datadoghq.eu"
-- DD_AGENT_MAJOR_VERSION=7 (explícito aunque el script ya lo fija)
-- DD_API_KEY inyectada via templatefile() en tf/ec2.tf, no hardcodeada en el script
-- Script one-line oficial de Datadog: https://install.datadoghq.com/scripts/install_script_agent7.sh
-- Arrancar el agente como servicio con: systemctl start datadog-agent
-- Referencia: https://app.datadoghq.com/account/settings/agent/latest
+- DD_AGENT_MAJOR_VERSION=7 (explicit even though the script already sets it)
+- DD_API_KEY injected via templatefile() in tf/ec2.tf, not hardcoded in the script
+- Official Datadog one-line script: https://install.datadoghq.com/scripts/install_script_agent7.sh
+- Start the agent as a service with: systemctl start datadog-agent
+- Reference: https://app.datadoghq.com/account/settings/agent/latest
 
-Entregable: los dos scripts completos y el bloque templatefile() actualizado en ec2.tf.
+Deliverable: both complete scripts and the updated templatefile() block in ec2.tf.
 ```
 
 ---
 
-## Prompt 3 — Crear el dashboard de monitorización en Datadog
+## Prompt 3 — Create the monitoring dashboard in Datadog
 
 ```
-Crea el recurso datadog_dashboard en tf/datadog.tf para monitorizar las instancias
-EC2 lti-project-backend y lti-project-frontend.
+Create the datadog_dashboard resource in tf/datadog.tf to monitor the EC2 instances
+lti-project-backend and lti-project-frontend.
 
 Dashboard:
-- Nombre: "LTI Project - EC2 Monitoring Dashboard", layout_type = "ordered"
-- Widgets timeseries_definition para: CPU Utilization, Network In, Network Out,
+- Name: "LTI Project - EC2 Monitoring Dashboard", layout_type = "ordered"
+- timeseries_definition widgets for: CPU Utilization, Network In, Network Out,
   Disk Read Ops, Disk Write Ops, Status Check Failed
 
-Fuente de métricas: el agente Datadog instalado en las instancias (Prompt 3), no CloudWatch.
-Las métricas del agente usan el namespace system.* y se agrupan por {host}:
-- CPU:        avg:system.cpu.user{*} by {host}
-- Network In: avg:system.net.bytes_rcvd{*} by {host}
+Metrics source: the Datadog agent installed on the instances (Prompt 3), not CloudWatch.
+Agent metrics use the system.* namespace and are grouped by {host}:
+- CPU:         avg:system.cpu.user{*} by {host}
+- Network In:  avg:system.net.bytes_rcvd{*} by {host}
 - Network Out: avg:system.net.bytes_sent{*} by {host}
-- Disk Read:  avg:system.io.r_s{*} by {host}
-- Disk Write: avg:system.io.w_s{*} by {host}
-- Agent up:   avg:datadog.agent.running{*} by {host}
+- Disk Read:   avg:system.io.r_s{*} by {host}
+- Disk Write:  avg:system.io.w_s{*} by {host}
+- Agent up:    avg:datadog.agent.running{*} by {host}
 
-Cómo referenciar recursos existentes de Terraform:
-- IDs de instancia: aws_instance.backend.id / aws_instance.frontend.id
-- IPs públicas: aws_instance.backend.public_ip / aws_instance.frontend.public_ip
+How to reference existing Terraform resources:
+- Instance IDs: aws_instance.backend.id / aws_instance.frontend.id
+- Public IPs: aws_instance.backend.public_ip / aws_instance.frontend.public_ip
 
-Añade en tf/outputs.tf los outputs de las IPs públicas de ambas instancias.
+Add the public IP outputs for both instances in tf/outputs.tf.
 
-Referencia: https://registry.terraform.io/providers/DataDog/datadog/latest/docs/resources/dashboard
+Reference: https://registry.terraform.io/providers/DataDog/datadog/latest/docs/resources/dashboard
 
-Entregable: tf/datadog.tf completo y tf/outputs.tf con los outputs de las IPs.
-
+Deliverable: complete tf/datadog.tf and tf/outputs.tf with the IP outputs.
 ```
