@@ -3,7 +3,7 @@
 # Install Datadog Agent v7
 DD_INSTALLER=$(mktemp /tmp/dd-install-XXXXXX.sh)
 curl --fail -L https://install.datadoghq.com/scripts/install_script_agent7.sh -o "$DD_INSTALLER"
-DD_API_KEY="${datadog_api_key}" DD_SITE="datadoghq.eu" DD_AGENT_MAJOR_VERSION=7 bash "$DD_INSTALLER"
+DD_API_KEY="${datadog_api_key}" DD_SITE="datadoghq.eu" DD_AGENT_MAJOR_VERSION=7 DD_HOST_TAGS="project:lti-project,service:frontend" bash "$DD_INSTALLER"
 rm -f "$DD_INSTALLER"
 systemctl start datadog-agent
 
